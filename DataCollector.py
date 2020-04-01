@@ -21,7 +21,7 @@ class DataCollector:
         for city in cities:
             self.GetData(city)
         json.dump(self.Data, self.FData, ensure_ascii=False)
-        
+
     def GetData(self, cityInfo):
         try:
             reqStr = self.GetReqStr(cityInfo)
