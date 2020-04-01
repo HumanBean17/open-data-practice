@@ -3,16 +3,13 @@ from GUI import *
 from Map import Map
 
 if __name__ == '__main__':
-    #dataCollector = DataCollector()
-    #dataCollector.UpdateData()
-    
-    m = Map()
-    #m.CreateMap()
+    dataCollector = DataCollector()
+
+    m = Map(dataCollector.GetPollutionData(), dataCollector.GetCities())
 
     app = QApplication(sys.argv)
     app.setApplicationName("Pollution Map")
 
-    print(m.GetMapUrl())
     window = MainWindow(m.GetMapUrl())
     app.exec_()
 

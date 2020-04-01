@@ -9,8 +9,12 @@ class MainWindow(QMainWindow):
 
     def __init__(self, url):
         super(MainWindow, self).__init__()
+        
         self.browser = QWebEngineView()
         self.browser.setUrl(QUrl(url))
+
+        self.setFixedWidth(1300)
+        self.setFixedHeight(900)
         self.setCentralWidget(self.browser)
         
         self.show()

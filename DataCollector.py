@@ -7,32 +7,53 @@ class DataCollector:
     Datetime = 'current'
 
     def __init__(self):
+        self.Regions = {}
         self.Data = []
+        
+        self.UpdateData()
 
-    def UpdateData(self):
+    def GetCities(self):
         with open(self.CitiesFname, 'r', encoding='utf-8-sig') as f:
             cities = json.load(f)
+        f.close()
+        return cities
+
+    def GetPollutionData(self):
+        with open(self.DataFname, 'r', encoding='utf-8-sig') as f:
+            data = json.load(f)
+        f.close()
+        return data
+
+    def UpdateData(self):
+        cities = self.GetCities()
         while True:
             ans = input('All data about pollution will be updated, continue? [y/n] ')
             if ans == 'n': return
-            elif ans == 'y':
-                self.FData = open(self.DataFname, 'w', encoding='utf-8-sig')
-                break
+            elif ans == 'y': break
         for city in cities:
             self.GetData(city)
+        
+        self.FData = open(self.DataFname, 'w', encoding='utf-8-sig')
         json.dump(self.Data, self.FData, ensure_ascii=False)
+        self.FData.close()
 
     def GetData(self, cityInfo):
         try:
+            if int(cityInfo['Население']) < 100000: return
             reqStr = self.GetReqStr(cityInfo)
             res = requests.get(reqStr)
             data = {'Город': None, 'Регион': None, 'Население': None, 'Загрязнение': None}
             data['Город'] = cityInfo['Город']
             data['Регион'] = cityInfo['Регион']
             data['Население'] = cityInfo['Население']
+            data['Широта'] = cityInfo['Широта']
+            data['Долгота'] = cityInfo['Долгота']
             data['Загрязнение'] = res.json()
-            print('Got info about ' + data['Город'])
-            self.Data.append(data)
+            if 'message' in data['Загрязнение']:
+                print('No info about ' + data['Город'])
+            else:
+                print('Got info about ' + data['Город'])
+                self.Data.append(data)
         except Exception as e:
             print("Exception (weather):", e)
             pass
