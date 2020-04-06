@@ -10,7 +10,7 @@ class DataCollector:
         self.Regions = {}
         self.Data = []
         
-        self.UpdateData()
+        #self.UpdateData()
 
     def GetCities(self):
         with open(self.CitiesFname, 'r', encoding='utf-8-sig') as f:
@@ -39,24 +39,30 @@ class DataCollector:
 
     def GetData(self, cityInfo):
         try:
-            if int(cityInfo['Население']) < 100000: return
+            if int(cityInfo['Население']) < 100000: 
+                pass
             reqStr = self.GetReqStr(cityInfo)
             res = requests.get(reqStr)
-            data = {'Город': None, 'Регион': None, 'Население': None, 'Загрязнение': None}
-            data['Город'] = cityInfo['Город']
-            data['Регион'] = cityInfo['Регион']
-            data['Население'] = cityInfo['Население']
-            data['Широта'] = cityInfo['Широта']
-            data['Долгота'] = cityInfo['Долгота']
-            data['Загрязнение'] = res.json()
+            data = self.FillData(cityInfo, res)
             if 'message' in data['Загрязнение']:
-                print('No info about ' + data['Город'])
+                pass
             else:
                 print('Got info about ' + data['Город'])
-                self.Data.append(data)
+            self.Data.append(data)
         except Exception as e:
             print("Exception (weather):", e)
             pass
+
+    @classmethod
+    def FillData(self, cityInfo, res):
+        data = {'Город': None, 'Регион': None, 'Население': None, 'Загрязнение': None}
+        data['Город'] = cityInfo['Город']
+        data['Регион'] = cityInfo['Регион']
+        data['Население'] = cityInfo['Население']
+        data['Широта'] = cityInfo['Широта']
+        data['Долгота'] = cityInfo['Долгота']
+        data['Загрязнение'] = res.json()
+        return data
 
     @classmethod
     def GetReqStr(self, cityInfo):
