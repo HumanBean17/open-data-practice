@@ -1,7 +1,8 @@
 import folium
+from folium.plugins import MarkerCluster
 #import pandas as pd
 
-import sys, os
+import sys, os, json, time
 
 class Map:
     MapDelim = 'file://'
@@ -12,15 +13,40 @@ class Map:
         self.Data = data
         self.Cities = cities
 
+        self.Colored = {}
         self.Pollution = []
 
         self.CreateMap()
-        self.SetMarkers()
 
+        self.SetClusters()
+
+        self.AddGeoJson()
         self.Map.save(self.MapName)
 
+    def StyleFunction(self, feature):
+        region = feature['name'].split()[0]
+        if region == 'Республика': region = feature['name'].split()[1]
+        clr = 'green'
+        for r in self.Data:
+            if region == r['Регион']:
+                pollution, clr = self.GetPollutionColor(r)
+        return {
+            'fillOpacity': 0.5,
+            'weight': 0,
+            'fillColor': clr
+        }
+
     def CreateMap(self):
-        self.Map = folium.Map(location=[55.7522200, 37.6155600], zoom_start = 4)
+        self.PollutionCalculate()
+        self.Map = folium.Map(location=[55.7522200, 37.6155600], zoom_start = 1)
+        
+    def AddGeoJson(self):
+        country_path = open('admin_level_2.geojson', encoding='utf-8-sig')
+        country_geojson = json.load(country_path)
+        
+        folium.GeoJson(country_geojson, name='geojson', style_function=self.StyleFunction).add_to(self.Map)
+        folium.LayerControl().add_to(self.Map)
+
 
     def GetMapUrl(self):
         return self.MapDelim + self.MapName
@@ -32,9 +58,9 @@ class Map:
         if val > self.PolDistr[3] and val <= self.PolDistr[4]:
             return (val, 'red')
         elif val > self.PolDistr[2] and val <= self.PolDistr[3]:
-            return (val, 'lightred')
-        elif val > self.PolDistr[1] and val <= self.PolDistr[2]:
             return (val, 'orange')
+        elif val > self.PolDistr[1] and val <= self.PolDistr[2]:
+            return (val, 'lightred')
         else:
             return (val, 'green')
 
@@ -60,12 +86,19 @@ class Map:
         self.PolDistr.append(midQuart*4)
         self.PolDistr.append(midQuart*5)
 
+    def SetClusters(self):
+        marker_cluster = MarkerCluster().add_to(self.Map)
+        for city in self.Data:
+            pollution, clr = self.GetPollutionColor(city)
+            folium.Marker(location=[float(city['Широта']), float(city['Долгота'])]
+                        ,radius=9
+                        ,popup = str(pollution)
+                        ,icon=folium.Icon(color=clr)
+                        ,fill_color=clr, fill_opacity=0.9).add_to(marker_cluster)
 
-
-    def SetMarkers(self):
-        self.PollutionCalculate()
+    """def SetMarkers(self):
         for city in self.Data:
             pollution, clr = self.GetPollutionColor(city)
             folium.Marker(location=[float(city['Широта']), float(city['Долгота'])]
                         ,popup = str(pollution)
-                        ,icon=folium.Icon(color=clr)).add_to(self.Map)
+                        ,icon=folium.Icon(color=clr)).add_to(self.Map)"""
