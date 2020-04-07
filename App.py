@@ -5,7 +5,9 @@ from Map import Map
 if __name__ == '__main__':
     dataCollector = DataCollector()
 
-    m = Map(dataCollector.GetPollutionData(), dataCollector.GetCities())
+    m = Map(dataCollector.GetPollutionDataCO()
+        ,dataCollector.GetPollutionDataSO()
+        ,dataCollector.GetCities())
 
     app = QApplication(sys.argv)
     app.setApplicationName("Pollution Map")
